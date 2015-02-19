@@ -1,0 +1,13 @@
+main
+  -url discovery
+  -url guessing
+  -url parameters
+  -forms
+  -cookies
+  
+page
+  -list of parameters
+  -get forms
+  
+hardcoded auth
+input file with common words for guessing urls
