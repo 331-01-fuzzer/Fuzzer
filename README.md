@@ -18,7 +18,7 @@ OPTIONS:
     `--slow=500`             Number of milliseconds considered when a response is considered "slow". Default is 500 milliseconds  
   
 Examples:  
-  # Discover inputs 
+  # Discover inputs  
   `fuzz discover http://localhost:8080 --common-words=mywords.txt`  
 
   # Discover inputs to DVWA using our hard-coded authentication  
