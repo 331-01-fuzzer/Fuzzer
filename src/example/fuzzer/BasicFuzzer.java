@@ -36,7 +36,7 @@ public class BasicFuzzer {
    */
 
   //   fuzz test http://localhost:8080 --custom-auth=dvwa --common-words=words.txt --vectors=vectors.txt --sensitive=creditcards.txt --random=false --slow=500
-	public static void main(String[] args) throws FailingHttpStatusCodeException, MalformedURLException, IOException {
+  public static void main(String[] args) throws FailingHttpStatusCodeException, MalformedURLException, IOException {
     if(args.length<2) {
       System.err.println("Too few args.");
       System.exit(1);
@@ -57,17 +57,17 @@ public class BasicFuzzer {
       loginDetails[1] = "";
     }
 
-		WebClient webClient = new WebClient();
-		webClient.setJavaScriptEnabled(true);
+    WebClient webClient = new WebClient();
+    webClient.setJavaScriptEnabled(true);
 
-		if(runType.toLowerCase().equals("discover")) {
+    if("discover".equals(runType.toLowerCase())) {
       runDiscover(webClient, url);
-    } else if (runType.toLowerCase().equals("test")) {
+    } else if("test".equals(runType.toLowerCase())) {
       runTest();
     }
 
 //		doFormPost(webClient);
-	}
+  }
 
   private static void readFlags(String[] args) {
     for(String s: args) {
@@ -79,10 +79,10 @@ public class BasicFuzzer {
   private static String[] getAuth(String customAuth) {
     String[] loginDetails = new String[2];
 
-    if(customAuth.toLowerCase().equals("dvwa")) {
+    if("dvwa".equals(customAuth.toLowerCase())) {
       loginDetails[0]="admin";
       loginDetails[1]="password";
-    } else if(customAuth.toLowerCase().equals("bodgeit")) {
+    } else if("bodgeit".equals(customAuth.toLowerCase())) {
       loginDetails[0]="admin";
       loginDetails[1]="1' OR '1'='1";
     } else {
@@ -107,44 +107,48 @@ public class BasicFuzzer {
     return lines;
   }
 
-  private static void runDiscover(WebClient client, String url) throws IOException, MalformedURLException{
+  private static void runDiscover(WebClient client, String url) throws IOException, MalformedURLException {
     discoverLinks(client, url);
     client.closeAllWindows();
   }
 
-  private static void runTest(){
+  private static void runTest() {
     //TODO: release 2
   }
-	/**
-	 * This code is for showing how you can get all the links on a given page, and visit a given URL
-	 * @param webClient
-	 * @throws IOException
-	 * @throws MalformedURLException
-	 */
-	private static void discoverLinks(WebClient webClient, String url) throws IOException, MalformedURLException {
-		HtmlPage page = webClient.getPage(url);
-		List<HtmlAnchor> links = page.getAnchors();
-		for (HtmlAnchor link : links) {
-			System.out.println("Link discovered: " + link.asText() + " @URL=" + link.getHrefAttribute());
-		}
-	}
+  
+  /**
+   * This code is for showing how you can get all the links on a given page, and visit a given URL
+   * @param webClient
+   * @throws IOException
+   * @throws MalformedURLException
+   */
+  private static void discoverLinks(WebClient webClient, String url) throws IOException, MalformedURLException {
+    PathNode root = new PathNode(new Url(url));
+    HtmlPage page = webClient.getPage(url);
+	root.addPage(page);
+    List<HtmlAnchor> links = page.getAnchors();
+    for(HtmlAnchor link : links) {
+      System.out.println("Link discovered: " + link.asText() + " @URL=" + link.getHrefAttribute());
+	  //TODO add them, and iterate
+    }
+  }
 
-	/**
-	 * This code is for demonstrating techniques for submitting an HTML form. Fuzzer code would need to be
-	 * more generalized
-	 * @param webClient
-	 * @throws FailingHttpStatusCodeException
-	 * @throws MalformedURLException
-	 * @throws IOException
-	 */
-	private static void doFormPost(WebClient webClient) throws FailingHttpStatusCodeException, MalformedURLException, IOException {
-		HtmlPage page = webClient.getPage("http://localhost:8080/bodgeit/product.jsp?prodid=26");
-		List<HtmlForm> forms = page.getForms();
-		for (HtmlForm form : forms) {
-			HtmlInput input = form.getInputByName("quantity");
-			input.setValueAttribute("2");
-			HtmlSubmitInput submit = (HtmlSubmitInput) form.getFirstByXPath("//input[@id='submit']");
-			System.out.println(submit.<HtmlPage> click().getWebResponse().getContentAsString());
-		}
-	}
+  /**
+   * This code is for demonstrating techniques for submitting an HTML form. Fuzzer code would need to be
+   * more generalized
+   * @param webClient
+   * @throws FailingHttpStatusCodeException
+   * @throws MalformedURLException
+   * @throws IOException
+   */
+  private static void doFormPost(WebClient webClient) throws FailingHttpStatusCodeException, MalformedURLException, IOException {
+    HtmlPage page = webClient.getPage("http://localhost:8080/bodgeit/product.jsp?prodid=26");
+    List<HtmlForm> forms = page.getForms();
+    for (HtmlForm form : forms) {
+      HtmlInput input = form.getInputByName("quantity");
+      input.setValueAttribute("2");
+      HtmlSubmitInput submit = (HtmlSubmitInput) form.getFirstByXPath("//input[@id='submit']");
+      System.out.println(submit.<HtmlPage> click().getWebResponse().getContentAsString());
+    }
+  }
 }
