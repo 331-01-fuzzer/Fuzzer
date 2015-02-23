@@ -37,24 +37,36 @@ public class BasicFuzzer {
 
   //   fuzz test http://localhost:8080 --custom-auth=dvwa --common-words=words.txt --vectors=vectors.txt --sensitive=creditcards.txt --random=false --slow=500
 	public static void main(String[] args) throws FailingHttpStatusCodeException, MalformedURLException, IOException {
+    if(args.length<2) {
+      System.err.println("Too few args.");
+      System.exit(1);
+    }
+
     String[] loginDetails = new String[2];
 
     String runType = args[0];
     String url = args[1];
-    readFlags(Arrays.copyOfRange(args, 2, args.length));
+
+    System.out.println("Running fuzzer type \"" + runType + "\" on url " + url);
+
+    if(args.length > 2) readFlags(Arrays.copyOfRange(args, 2, args.length));
 
     if(flags.containsKey("--custom-auth")) loginDetails = getAuth(flags.get("--custom-auth"));
     else {
-      loginDetails[0]="";
-      loginDetails[1]="";
+      loginDetails[0] = "";
+      loginDetails[1] = "";
     }
 
-//
-//		WebClient webClient = new WebClient();
-//		webClient.setJavaScriptEnabled(true);
-//		discoverLinks(webClient);
+		WebClient webClient = new WebClient();
+		webClient.setJavaScriptEnabled(true);
+
+		if(runType.toLowerCase().equals("discover")) {
+      runDiscover(webClient, url);
+    } else if (runType.toLowerCase().equals("test")) {
+      runTest();
+    }
+
 //		doFormPost(webClient);
-//		webClient.closeAllWindows();
 	}
 
   private static void readFlags(String[] args) {
@@ -67,12 +79,12 @@ public class BasicFuzzer {
   private static String[] getAuth(String customAuth) {
     String[] loginDetails = new String[2];
 
-    if(customAuth.toLowerCase()=="dvwa") {
-      loginDetails[0]="";
-      loginDetails[1]="";
-    } else if(customAuth.toLowerCase()=="bodgeit") {
-      loginDetails[0]="";
-      loginDetails[1]="";
+    if(customAuth.toLowerCase().equals("dvwa")) {
+      loginDetails[0]="admin";
+      loginDetails[1]="password";
+    } else if(customAuth.toLowerCase().equals("bodgeit")) {
+      loginDetails[0]="admin";
+      loginDetails[1]="1' OR '1'='1";
     } else {
       loginDetails[0]="";
       loginDetails[1]="";
@@ -95,14 +107,22 @@ public class BasicFuzzer {
     return lines;
   }
 
+  private static void runDiscover(WebClient client, String url) throws IOException, MalformedURLException{
+    discoverLinks(client, url);
+    client.closeAllWindows();
+  }
+
+  private static void runTest(){
+    //TODO: release 2
+  }
 	/**
 	 * This code is for showing how you can get all the links on a given page, and visit a given URL
 	 * @param webClient
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	private static void discoverLinks(WebClient webClient) throws IOException, MalformedURLException {
-		HtmlPage page = webClient.getPage("http://localhost:8080/bodgeit");
+	private static void discoverLinks(WebClient webClient, String url) throws IOException, MalformedURLException {
+		HtmlPage page = webClient.getPage(url);
 		List<HtmlAnchor> links = page.getAnchors();
 		for (HtmlAnchor link : links) {
 			System.out.println("Link discovered: " + link.asText() + " @URL=" + link.getHrefAttribute());
