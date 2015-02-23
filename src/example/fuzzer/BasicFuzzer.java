@@ -1,4 +1,4 @@
-package example.fuzzer;
+//package example.fuzzer;
 
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.WebClient;
@@ -123,8 +123,8 @@ public class BasicFuzzer {
    * @throws MalformedURLException
    */
   private static void discoverLinks(WebClient webClient, String url) throws IOException, MalformedURLException {
-    PathNode root = new PathNode(new Url(url));
     HtmlPage page = webClient.getPage(url);
+    PathNode root = new PathNode(page.getUrl());
 	root.addPage(page);
     List<HtmlAnchor> links = page.getAnchors();
     for(HtmlAnchor link : links) {

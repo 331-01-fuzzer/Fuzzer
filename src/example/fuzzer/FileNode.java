@@ -1,3 +1,10 @@
+//package example.fuzzer;
+
+import com.gargoylesoftware.htmlunit.html.*;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.ArrayList;
+
 public class FileNode {
 
 	private HtmlPage page;
