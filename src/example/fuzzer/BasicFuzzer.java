@@ -1,4 +1,4 @@
-//package example.fuzzer;
+package example.fuzzer;
 
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.WebClient;

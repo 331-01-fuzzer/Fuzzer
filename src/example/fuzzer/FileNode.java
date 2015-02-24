@@ -1,9 +1,10 @@
-//package example.fuzzer;
+package example.fuzzer;
 
 import com.gargoylesoftware.htmlunit.html.*;
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class FileNode {
 
@@ -19,5 +20,18 @@ public class FileNode {
 	
 	public void addQuery( String query ) {
 		//TODO
+	}
+	
+	public ArrayList<URL> getLinks() {
+		ArrayList<URL> links = new ArrayList<URL>();
+		for( HtmlAnchor link : page.getAnchors() ) {
+			System.out.println( "FileNode found URL: " + link.getHrefAttribute() );
+			try {
+				links.add( new URL( link.getHrefAttribute() ) );
+			} catch( MalformedURLException e ) {
+				// just don't add it
+			}
+		}
+		return links;
 	}
 }
