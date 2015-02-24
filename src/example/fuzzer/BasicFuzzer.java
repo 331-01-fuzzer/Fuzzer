@@ -79,7 +79,6 @@ public class BasicFuzzer {
   private static void getAuth(String customAuth) {
     HtmlPage logIn = null;
     HtmlForm logInForm = null;
-    String[] loginDetails = new String[2];
 
     if ("dvwa".equals(customAuth.toLowerCase())) {
       try {
@@ -110,10 +109,12 @@ public class BasicFuzzer {
       logInForm.getInputByName("password1").setValueAttribute("pass");
       logInForm.getInputByName("password2").setValueAttribute("pass");
 
-      //then click the submit button, and check for success or failure
+
       try {
         logInForm.getInputByValue("Register").click();
-      }catch(IOException e) {}
+      }catch(IOException e) {
+        e.printStackTrace();
+      }
 
     } else {
       System.out.println("No credentials available for " +customAuth+ ". Continuing the fuzz without login");
