@@ -62,12 +62,10 @@ public class PathNode {
 					FileNode node = new FileNode( page );
 					files.put( parts[idx], node );
 					return node.getLinks();
-					//TODO do something with form inputs
 				}
 				// already seen this file. just add any new query parameters.
 				files.get( parts[idx] ).addQuery( rel.getQuery() );
 				return new ArrayList<URL>(); // empty arraylist so we don't have to worry about passing nulls around
-				//TODO do something with query parameters (or do that later, since we don't necessarily know all of them yet)
 			}
 		} catch( URISyntaxException e ) {
 			// if there's a problem with the URI, it's because there was a problem with the URL.
