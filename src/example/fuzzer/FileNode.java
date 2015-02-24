@@ -34,4 +34,10 @@ public class FileNode {
 		}
 		return links;
 	}
+	
+	public void printResults() {
+		System.out.println( url );
+		//TODO print queries
+		//TODO print form inputs
+	}
 }

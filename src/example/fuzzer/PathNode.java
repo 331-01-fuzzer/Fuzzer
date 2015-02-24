@@ -32,31 +32,40 @@ public class PathNode {
 	public ArrayList<URL> addPage( HtmlPage page ) throws MalformedURLException {
 		try {
 			// get relative uri
-			URI rel = page.getUrl().toURI().relativize( uri );
-			System.out.println( "rel: " + rel );
+			URI rel = uri.relativize( page.getUrl().toURI() );
+			if( rel.equals( page.getUrl().toURI() ) ) return new ArrayList<URL>(); // not really a subpath or file on this part of the tree.
 			// get first part
 			String[] parts = rel.getPath().split( "/" );
-			if( parts.length > 1 ) { // this is a path
+			/*
+			"" = [""] (1) idx=1
+			"file" = ["file"] (1) idx=0
+			"/file" = ["","file"] (2) idx=1
+			"path/etc" ["path","etc"] (2) idx=0
+			"/path/etc" ["","path","etc"] (3) idx=1
+			*/
+			int idx = "".equals( parts[0] ) ? 1 : 0;
+			if( parts.length > idx + 1 ) { // this is a path (i.e. [/]something/somethingelse)
 				ArrayList<URL> urls = new ArrayList<URL>();
-				if( !subpaths.containsKey( parts[0] ) ) {
+				if( !subpaths.containsKey( parts[idx] ) ) {
 					// haven't seen this path yet. add it to the tree and perform guessing
-					PathNode node = new PathNode( uri.resolve( parts[0] ).toURL() );
-					subpaths.put( parts[0], node );
+					PathNode node = new PathNode( new URL( uri + (uri.toString().endsWith( "/" ) ? "" : "/") + parts[idx] ) );
+					subpaths.put( parts[idx], node );
 					urls = node.getGuesses();
 				}
 				// add the subpath and return the result
-				urls.addAll( subpaths.get( parts[0] ).addPage( page ) );
+				urls.addAll( subpaths.get( parts[idx] ).addPage( page ) );
 				return urls;
-			} else { // this is a file
-				if( !files.containsKey( parts[0] ) ) {
+			} else { // this is a file (i.e. [/]something[.someext][?somequery])
+				idx = parts.length - 1; // fix case ""
+				if( !files.containsKey( parts[idx] ) ) {
 					// haven't seen this file yet. add it to the tree and scrape its links
 					FileNode node = new FileNode( page );
-					files.put( parts[0], node );
+					files.put( parts[idx], node );
 					return node.getLinks();
 					//TODO do something with form inputs
 				}
 				// already seen this file. just add any new query parameters.
-				files.get( parts[0] ).addQuery( rel.getQuery() );
+				files.get( parts[idx] ).addQuery( rel.getQuery() );
 				return new ArrayList<URL>(); // empty arraylist so we don't have to worry about passing nulls around
 				//TODO do something with query parameters (or do that later, since we don't necessarily know all of them yet)
 			}
@@ -83,5 +92,13 @@ public class PathNode {
 			}
 		}
 		return guesses;
+	}
+	
+	/**
+	 * Prints all urls, including children
+	 */
+	public void printResults() {
+		for( FileNode file : files.values() ) file.printResults();
+		for( PathNode path : subpaths.values() ) path.printResults();
 	}
 }
