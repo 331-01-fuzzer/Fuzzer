@@ -157,7 +157,7 @@ public class BasicFuzzer {
     List<HtmlAnchor> links = page.getAnchors();
     for(HtmlAnchor link : links) {
 	  //TODO add them, and iterate
-      if (page.getUrl().equals(link.getHrefAttribute())){
+      if (!page.getUrl().equals(link.getHrefAttribute())){
     	  System.out.println("Link discovered: " + link.asText() + " @URL=" + link.getHrefAttribute());
       }
     }
