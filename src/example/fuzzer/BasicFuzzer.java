@@ -3,6 +3,7 @@ package example.fuzzer;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.*;
+import com.gargoylesoftware.htmlunit.util.Cookie;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -156,10 +157,30 @@ public class BasicFuzzer {
 	root.addPage(page);
     List<HtmlAnchor> links = page.getAnchors();
     for(HtmlAnchor link : links) {
-	  //TODO add them, and iterate
+    	//Make sure the new link is not the same as the current page
       if (!page.getUrl().equals(link.getHrefAttribute())){
     	  System.out.println("Link discovered: " + link.asText() + " @URL=" + link.getHrefAttribute());
       }
+    }
+  }
+  
+  /**
+   * This code is for showing how you can get all the links on a given page, and visit a given URL
+   * @param webClient
+   * @throws IOException
+   * @throws MalformedURLException
+   */
+  private static void discoverInputs(WebClient webClient, String url) throws IOException, MalformedURLException {
+    HtmlPage page = webClient.getPage(url);
+    PathNode root = new PathNode(page.getUrl());
+	root.addPage(page);
+    List<HtmlForm> forms = page.getForms();
+    Set<Cookie> cookies = webClient.getCookieManager().getCookies(page.getUrl());
+    for(HtmlForm form : forms) {
+    	System.out.println("Input discovered: " + form.asText());
+    }
+    for(Cookie cookie : cookies){
+    	System.out.println("Cookie discovered: " + cookie.toString());
     }
   }
 
