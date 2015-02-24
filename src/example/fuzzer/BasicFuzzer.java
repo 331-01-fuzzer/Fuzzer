@@ -27,6 +27,8 @@ public class BasicFuzzer {
    */
   static Map<String,String> flags = new HashMap<String,String>();
   
+  static List<String> commonWords;
+  
   /**
    *
    * @param args
@@ -56,6 +58,8 @@ public class BasicFuzzer {
       loginDetails[0] = "";
       loginDetails[1] = "";
     }
+	
+	if(flags.containsKey("--common-words")) commonWords = readFile(flags.get("--common-words"));
 
     WebClient webClient = new WebClient();
     webClient.setJavaScriptEnabled(true);
