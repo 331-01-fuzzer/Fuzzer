@@ -1,6 +1,12 @@
 # Fuzzer
 SE 331-01 Fuzzer Project  
 
+USAGE:
+ * after unpacking the files, navigate to the fuzz directory which contains the file fuzzer.jar
+ * execute the following command:
+ * `java -jar fuzzer.jar <command> <url> [options...]`
+ * where <command> is described in the next section, <url> is the url of the website to fuzz (including protocol), and options are described later
+
 COMMANDS:  
   `discover`  Output a comprehensive, human-readable list of all discovered inputs to the system. Techniques include both crawling and guessing.  
   `test`      Discover all inputs, then attempt a list of exploit vectors on those inputs. Report potential vulnerabilities.  
@@ -19,10 +25,10 @@ OPTIONS:
   
 Examples:  
   # Discover inputs  
-  `fuzz discover http://localhost:8080 --common-words=mywords.txt`  
+  `java -jar fuzzer.jar discover http://localhost:8080 --common-words=mywords.txt`  
 
   # Discover inputs to DVWA using our hard-coded authentication  
-  `fuzz discover http://127.0.0.1 --custom-auth=dvwa --common-words=mywords.txt`  
+  `java -jar fuzzer.jar discover http://127.0.0.1 --custom-auth=dvwa --common-words=mywords.txt`  
 
   # Discover and Test DVWA without randomness  
-  `fuzz test http://localhost:8080 --custom-auth=dvwa --common-words=words.txt --vectors=vectors.txt --sensitive=creditcards.txt --random=false`  
+  `java -jar fuzzer.jar test http://localhost:8080 --custom-auth=dvwa --common-words=words.txt --vectors=vectors.txt --sensitive=creditcards.txt --random=false`  
