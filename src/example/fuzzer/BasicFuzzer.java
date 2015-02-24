@@ -141,6 +141,7 @@ public class BasicFuzzer {
 
   private static void runDiscover(WebClient client, String url) throws IOException, MalformedURLException {
     discoverLinks(client, url);
+	discoverInputs(client, url);
     client.closeAllWindows();
   }
 
@@ -154,17 +155,6 @@ public class BasicFuzzer {
    * @throws IOException
    * @throws MalformedURLException
    */
-<<<<<<< .merge_file_qoJbQq
-  private static void discoverLinks(WebClient webClient, String url) throws IOException, MalformedURLException {
-    HtmlPage page = webClient.getPage(url);
-    PathNode root = new PathNode(page.getUrl());
-	root.addPage(page);
-    List<HtmlAnchor> links = page.getAnchors();
-    for(HtmlAnchor link : links) {
-    	//Make sure the new link is not the same as the current page
-      if (!page.getUrl().equals(link.getHrefAttribute())){
-    	  System.out.println("Link discovered: " + link.asText() + " @URL=" + link.getHrefAttribute());
-=======
   private static void discoverLinks(WebClient webClient, String homeurl) throws IOException, MalformedURLException {
     HtmlPage homepage = webClient.getPage(homeurl);
     PathNode root = new PathNode(homepage.getUrl());
@@ -182,7 +172,6 @@ public class BasicFuzzer {
 	    } catch( ScriptException e ) {
 		  //FIXME should probably still add it? or would it not be a valid HtmlPage?
 		}
->>>>>>> .merge_file_II6bdf
       }
 	}
 	
@@ -198,8 +187,8 @@ public class BasicFuzzer {
    */
   private static void discoverInputs(WebClient webClient, String url) throws IOException, MalformedURLException {
     HtmlPage page = webClient.getPage(url);
-    PathNode root = new PathNode(page.getUrl());
-	root.addPage(page);
+    //PathNode root = new PathNode(page.getUrl());
+	//root.addPage(page);
     List<HtmlForm> forms = page.getForms();
     Set<Cookie> cookies = webClient.getCookieManager().getCookies(page.getUrl());
     for(HtmlForm form : forms) {
