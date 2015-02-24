@@ -1,6 +1,7 @@
 package example.fuzzer;
 
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
+import com.gargoylesoftware.htmlunit.ScriptException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.*;
 import com.gargoylesoftware.htmlunit.util.Cookie;
@@ -9,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 
 public class BasicFuzzer {
@@ -151,6 +153,7 @@ public class BasicFuzzer {
    * @throws IOException
    * @throws MalformedURLException
    */
+<<<<<<< .merge_file_qoJbQq
   private static void discoverLinks(WebClient webClient, String url) throws IOException, MalformedURLException {
     HtmlPage page = webClient.getPage(url);
     PathNode root = new PathNode(page.getUrl());
@@ -160,8 +163,29 @@ public class BasicFuzzer {
     	//Make sure the new link is not the same as the current page
       if (!page.getUrl().equals(link.getHrefAttribute())){
     	  System.out.println("Link discovered: " + link.asText() + " @URL=" + link.getHrefAttribute());
+=======
+  private static void discoverLinks(WebClient webClient, String homeurl) throws IOException, MalformedURLException {
+    HtmlPage homepage = webClient.getPage(homeurl);
+    PathNode root = new PathNode(homepage.getUrl());
+	ArrayDeque<URL> queue = new ArrayDeque<URL>(root.getGuesses());
+	queue.addAll(root.addPage(homepage));
+	while(!queue.isEmpty()) {
+	  URL url = queue.remove();
+	  if(homepage.getUrl().getHost().equals(url.getHost())) {
+        try {
+	      System.out.println( "trying url: " + url );
+          HtmlPage page = webClient.getPage(url);
+          queue.addAll(root.addPage(page));
+        } catch( FailingHttpStatusCodeException e ) {
+	      // error getting page (most likely it doesn't exist) - don't add it.
+	    } catch( ScriptException e ) {
+		  //FIXME should probably still add it? or would it not be a valid HtmlPage?
+		}
+>>>>>>> .merge_file_II6bdf
       }
-    }
+	}
+	
+	root.printResults();
   }
   
   /**

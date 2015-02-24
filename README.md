@@ -22,7 +22,7 @@ Examples:
   `fuzz discover http://localhost:8080 --common-words=mywords.txt`  
 
   # Discover inputs to DVWA using our hard-coded authentication  
-  `fuzz discover http://localhost:8080 --common-words=mywords.txt`  
+  `fuzz discover http://127.0.0.1 --custom-auth=dvwa --common-words=mywords.txt`  
 
   # Discover and Test DVWA without randomness  
   `fuzz test http://localhost:8080 --custom-auth=dvwa --common-words=words.txt --vectors=vectors.txt --sensitive=creditcards.txt --random=false`  
