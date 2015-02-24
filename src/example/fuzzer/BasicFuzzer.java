@@ -57,6 +57,7 @@ public class BasicFuzzer {
 
     if(args.length > 2) readFlags(Arrays.copyOfRange(args, 2, args.length));
 
+    java.util.logging.Logger.getLogger("com.gargoylesoftware").setLevel(java.util.logging.Level.OFF); 
     webClient = new WebClient();
     webClient.setJavaScriptEnabled(true);
 
@@ -185,6 +186,7 @@ public class BasicFuzzer {
       }
 	}
 	
+	System.out.println( "\nDiscovery Results:\n" );
 	root.printResults();
   }
   
