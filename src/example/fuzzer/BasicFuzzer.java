@@ -26,6 +26,7 @@ public class BasicFuzzer {
     --slow=500             Number of milliseconds considered when a response is considered "slow". Default is 500 milliseconds
    */
   static Map<String,String> flags = new HashMap<String,String>();
+  static WebClient webClient;
   
   static List<String> commonWords;
   
@@ -53,16 +54,11 @@ public class BasicFuzzer {
 
     if(args.length > 2) readFlags(Arrays.copyOfRange(args, 2, args.length));
 
-    if(flags.containsKey("--custom-auth")) loginDetails = getAuth(flags.get("--custom-auth"));
-    else {
-      loginDetails[0] = "";
-      loginDetails[1] = "";
-    }
-	
-	if(flags.containsKey("--common-words")) commonWords = readFile(flags.get("--common-words"));
-
-    WebClient webClient = new WebClient();
+    webClient = new WebClient();
     webClient.setJavaScriptEnabled(true);
+
+    if(flags.containsKey("--custom-auth")) getAuth(flags.get("--custom-auth"));
+	if(flags.containsKey("--common-words")) commonWords = readFile(flags.get("--common-words"));
 
     if("discover".equals(runType.toLowerCase())) {
       runDiscover(webClient, url);
@@ -80,21 +76,48 @@ public class BasicFuzzer {
     }
   }
 
-  private static String[] getAuth(String customAuth) {
+  private static void getAuth(String customAuth) {
+    HtmlPage logIn = null;
+    HtmlForm logInForm = null;
     String[] loginDetails = new String[2];
 
-    if("dvwa".equals(customAuth.toLowerCase())) {
-      loginDetails[0]="admin";
-      loginDetails[1]="password";
-    } else if("bodgeit".equals(customAuth.toLowerCase())) {
-      loginDetails[0]="admin";
-      loginDetails[1]="1' OR '1'='1";
-    } else {
-      loginDetails[0]="";
-      loginDetails[1]="";
-    }
+    if ("dvwa".equals(customAuth.toLowerCase())) {
+      try {
+        logIn = webClient.getPage("http://127.0.0.1/dvwa/login.php");
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
 
-    return loginDetails;
+      logInForm = logIn.getFirstByXPath("/html/body/div/form");
+      logInForm.getInputByName("username").setValueAttribute("admin");
+      logInForm.getInputByName("password").setValueAttribute("password");
+
+      try {
+        logInForm.getInputByName("Login").click();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+
+    } else if ("bodgeit".equals(customAuth.toLowerCase())) {
+      try {
+        logIn = webClient.getPage("http://127.0.0.1:8080/bodgeit/register.jsp");
+      }catch (Exception e) {
+        e.printStackTrace();
+      }
+
+      logInForm = logIn.getFirstByXPath(".//form[@method='POST']");
+      logInForm.getInputByName("username").setValueAttribute("fakeuser@fakemail.com");
+      logInForm.getInputByName("password1").setValueAttribute("pass");
+      logInForm.getInputByName("password2").setValueAttribute("pass");
+
+      //then click the submit button, and check for success or failure
+      try {
+        logInForm.getInputByValue("Register").click();
+      }catch(IOException e) {}
+
+    } else {
+      System.out.println("No credentials available for " +customAuth+ ". Continuing the fuzz without login");
+    }
   }
 
   private static List<String> readFile(String fileName) throws IOException {
