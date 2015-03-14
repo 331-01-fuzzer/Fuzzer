@@ -86,6 +86,10 @@ public class FileNode {
 		//TODO
 	}
 	
+	public void checkSensitiveInfo( List<String> keywords ) {
+		//TODO
+	}
+	
 	public void printResults() {
 		System.out.println( url );
 		for( String param : queries.keySet() )
