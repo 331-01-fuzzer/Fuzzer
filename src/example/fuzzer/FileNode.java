@@ -1,10 +1,14 @@
 package example.fuzzer;
 
 import com.gargoylesoftware.htmlunit.html.*;
+import com.gargoylesoftware.htmlunit.WebResponse;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.ListIterator;
 
 public class FileNode {
 
@@ -48,6 +52,38 @@ public class FileNode {
 			}
 		}
 		return links;
+	}
+	
+	@SuppressWarnings( "unchecked" )
+	public void tryForms( List<String> vectors ) {
+		List<HtmlForm> forms = page.getForms();
+		for( HtmlForm form : forms ) {
+			List<HtmlInput> inputs = (List<HtmlInput>) form.getByXPath( "//textarea" );
+			inputs.addAll( (List<HtmlInput>) form.getByXPath( "//input" ) );
+			HtmlElement submit = form.getFirstByXPath( "//input[@type='submit']" );
+			if( submit == null ) submit = form.getFirstByXPath( "//button" );
+			for( ListIterator<String> it = vectors.listIterator(); it.hasNext(); ) {
+				for( HtmlInput input : inputs ) {
+					if( it.hasNext() ) {
+						input.setValueAttribute( it.next() );
+					} else { // reached the end of vectors,
+						// but still have inputs to fill in
+						input.setValueAttribute( it.previous() );
+					}
+				}
+				try {
+					WebResponse response = submit.<HtmlPage> click().getWebResponse();
+					//TODO check response
+				} catch( IOException e ) {
+					//TODO does that mean we got a bad response?
+				}
+				//TODO gather results and do something with them (return/print/file)
+			}
+		}
+	}
+	
+	public void tryUrlParams( List<String> vectors ) {
+		//TODO
 	}
 	
 	public void printResults() {

@@ -2,7 +2,7 @@
 SE 331-01 Fuzzer Project  
 
 USAGE:
- * after unpacking the files, navigate to the fuzz directory which contains the file fuzzer.jar
+ * after unpacking the files, navigate to the directory which contains the file fuzzer.jar
  * execute the following command:
  * `java -jar fuzzer.jar <command> <url> [options...]`
  * where <command> is described in the next section, <url> is the url of the website to fuzz (including protocol), and options are described later
