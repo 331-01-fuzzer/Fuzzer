@@ -15,6 +15,7 @@ public class FileNode {
 	private HtmlPage page;
 	private URL url;
 	private HashMap<String, ArrayList<String>> queries;
+	private List<HtmlForm> forms;
 	
 	public FileNode( HtmlPage page ) {
 		this.page = page;
@@ -25,6 +26,7 @@ public class FileNode {
 		}
 		queries = new HashMap<String, ArrayList<String>>();
 		addQuery( page.getUrl().getQuery() );
+		forms = page.getForms();
 	}
 	
 	public void addQuery( String query ) {
@@ -54,46 +56,69 @@ public class FileNode {
 		return links;
 	}
 	
+	public void tryUrlParams( List<String> vectors, List<String> keywords ) {
+		//TODO
+	}
+	
 	@SuppressWarnings( "unchecked" )
-	public void tryForms( List<String> vectors ) {
-		List<HtmlForm> forms = page.getForms();
+	public void tryForms( List<String> vectors, List<String> keywords ) {
 		for( HtmlForm form : forms ) {
 			List<HtmlInput> inputs = (List<HtmlInput>) form.getByXPath( "//textarea" );
 			inputs.addAll( (List<HtmlInput>) form.getByXPath( "//input" ) );
 			HtmlElement submit = form.getFirstByXPath( "//input[@type='submit']" );
 			if( submit == null ) submit = form.getFirstByXPath( "//button" );
-			for( ListIterator<String> it = vectors.listIterator(); it.hasNext(); ) {
-				for( HtmlInput input : inputs ) {
-					if( it.hasNext() ) {
-						input.setValueAttribute( it.next() );
-					} else { // reached the end of vectors,
-						// but still have inputs to fill in
-						input.setValueAttribute( it.previous() );
+			if( submit == null ) {
+				// can't really do anything if we can't figure out how to submit
+			} else {
+				for( String vector : vectors ) {
+					for( HtmlInput input : inputs )
+						input.setValueAttribute( vector );
+					try {
+						String response = submit.<HtmlPage> click().getWebResponse().getContentAsString();
+						checkSensitiveInfo( response, vector, keywords );
+					} catch( IOException e ) {
+						System.out.println( "\tBad response for vector " + vector );
+						//TODO get status code from the IOException?
+						//TODO get the html result to scan for keywords?
 					}
 				}
-				try {
-					WebResponse response = submit.<HtmlPage> click().getWebResponse();
-					//TODO check response
-				} catch( IOException e ) {
-					//TODO does that mean we got a bad response?
-				}
-				//TODO gather results and do something with them (return/print/file)
 			}
 		}
 	}
 	
-	public void tryUrlParams( List<String> vectors ) {
-		//TODO
+	// helper for tryForms and tryUrlParams
+	private void checkSensitiveInfo( String response, String vector, List<String> keywords ) {
+		// check for unsanitized input
+		if( response.indexOf( vector ) != -1 )
+			System.out.println( "\tUnsanitized input: " + vector );
+			
+		// check for information leak
+		for( String s : keywords )
+			if( response.indexOf( s ) != -1 )
+				System.out.println( "\tLeaked information: " + s );
 	}
 	
-	public void checkSensitiveInfo( List<String> keywords ) {
-		//TODO
-	}
-	
+	@SuppressWarnings( "unchecked" )
 	public void printResults() {
+		// print url
 		System.out.println( url );
-		for( String param : queries.keySet() )
-			System.out.println( "\t" + param );
-		//TODO print form inputs
+		
+		// print url query parameters
+		if( !queries.isEmpty() ) {
+			System.out.println( "\tURL Query Parameters:" );
+			for( String param : queries.keySet() )
+				System.out.println( "\t--" + param );
+		}
+		
+		// print form inputs
+		if( !forms.isEmpty() ) {
+			System.out.println( "\tForm Inputs:" );
+			for( HtmlForm form : forms ) {
+				for( HtmlTextArea ta : (List<HtmlTextArea>) form.getByXPath( "//textarea" ) )
+					System.out.println( "".equals( ta.getNameAttribute() ) ? "[no name]" : ta.getNameAttribute() );
+				for( HtmlInput in : (List<HtmlInput>) form.getByXPath( "//input" ) )
+					System.out.println( "".equals( in.getNameAttribute() ) ? "[no name]" : in.getNameAttribute() );
+			}
+		}
 	}
 }

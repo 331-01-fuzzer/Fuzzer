@@ -7,6 +7,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class PathNode {
 	
@@ -94,9 +95,23 @@ public class PathNode {
 	
 	/**
 	 * Prints all urls, including children
+	 * @deprecated use printResults(List<String>,List<String) instead
 	 */
+	@Deprecated
 	public void printResults() {
 		for( FileNode file : files.values() ) file.printResults();
 		for( PathNode path : subpaths.values() ) path.printResults();
+	}
+	
+	/**
+	 * Prints all urls, including children
+	 */
+	public void printResults( List<String> vectors, List<String> keywords ) {
+		for( FileNode file : files.values() ) {
+			file.printResults();
+			file.tryForms( vectors, keywords );
+			file.tryUrlParams( vectors, keywords );
+		}
+		for( PathNode path : subpaths.values() ) path.printResults( vectors, keywords );
 	}
 }
