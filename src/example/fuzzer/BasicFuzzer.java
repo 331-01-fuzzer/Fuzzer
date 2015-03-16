@@ -60,6 +60,7 @@ public class BasicFuzzer {
     java.util.logging.Logger.getLogger("com.gargoylesoftware").setLevel(java.util.logging.Level.OFF); 
     webClient = new WebClient();
     webClient.setJavaScriptEnabled(true);
+    webClient.setThrowExceptionOnFailingStatusCode(false);
 
     if(flags.containsKey("--custom-auth")) getAuth(flags.get("--custom-auth"));
 	if(flags.containsKey("--common-words")) commonWords = readFile(flags.get("--common-words"));
@@ -196,6 +197,26 @@ public class BasicFuzzer {
     }
     for(Cookie cookie : cookies){
     	System.out.println("Cookie discovered: " + cookie.toString());
+    }
+  }
+
+  /**
+   *
+   */
+  private static void getResponseCode(String url) throws IOException, MalformedURLException {
+    int statusCode = webClient.getPage(url).getWebResponse().getStatusCode();
+    if (statusCode!=200) {
+      System.out.println("Status code for "+url+" not 200 OK and is instead " +statusCode);
+    }
+  }
+
+  /**
+   *
+   */
+  private static void checkResponseTime(String url) throws IOException, MalformedURLException {
+    long responseTime = webClient.getPage(url).getWebResponse().getLoadTime();
+    if(Integer.parseInt(flags.get("--slow")) < responseTime) {
+      System.out.println("Response time of "+responseTime+"ms for website " + url + " slower than expected response time " +Integer.parseInt(flags.get("--slow"))+ "ms");
     }
   }
 
