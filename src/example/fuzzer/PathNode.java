@@ -1,5 +1,6 @@
 package example.fuzzer;
 
+import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.*;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -106,12 +107,13 @@ public class PathNode {
 	/**
 	 * Prints all urls, including children
 	 */
-	public void printResults( List<String> vectors, List<String> keywords ) {
+	public void printResults( WebClient client, List<String> vectors, List<String> keywords ) {
 		for( FileNode file : files.values() ) {
 			file.printResults();
 			file.tryForms( vectors, keywords );
-			file.tryUrlParams( vectors, keywords );
+			file.tryUrlParams( client, vectors, keywords );
 		}
-		for( PathNode path : subpaths.values() ) path.printResults( vectors, keywords );
+		for( PathNode path : subpaths.values() )
+			path.printResults( client, vectors, keywords );
 	}
 }

@@ -1,7 +1,10 @@
 package example.fuzzer;
 
-import com.gargoylesoftware.htmlunit.html.*;
+import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
+import com.gargoylesoftware.htmlunit.ScriptException;
+import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebResponse;
+import com.gargoylesoftware.htmlunit.html.*;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -56,8 +59,26 @@ public class FileNode {
 		return links;
 	}
 	
-	public void tryUrlParams( List<String> vectors, List<String> keywords ) {
-		//TODO
+	public void tryUrlParams( WebClient client, List<String> vectors, List<String> keywords ) {
+		if( !queries.isEmpty() ) {
+			for( String vector : vectors ) {
+				String query = "?";
+				for( String param : queries.keySet() ) {
+					if( query.length() > 1 ) query += "&";
+					query += param + "=" + vector;
+				}
+				try {
+					HtmlPage page = client.getPage( url + query );
+					checkSensitiveInfo( page.asXml(), vector, keywords );
+				} catch( FailingHttpStatusCodeException e ) {
+					System.out.println( "\tBad response (" + e.getStatusCode() + ") for vector " + vector );
+				} catch( IOException e ) {
+					//FIXME what would cause this that's not a FailingHttpStatusCodeException?
+				} catch( ScriptException e ) {
+					// don't care
+				}
+			}
+		}
 	}
 	
 	@SuppressWarnings( "unchecked" )
