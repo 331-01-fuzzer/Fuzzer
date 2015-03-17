@@ -15,6 +15,8 @@ import java.util.*;
 
 public class BasicFuzzer {
 
+  public static final boolean DEBUG = false;
+  
   /*
   Possible flags:
     --custom-auth=string     Signal that the fuzzer should use hard-coded authentication for a specific application (e.g. dvwa). Optional.
@@ -174,10 +176,12 @@ public class BasicFuzzer {
     while(!queue.isEmpty()) {
       URL url = queue.remove();
       if(homepage.getUrl().getHost().equals(url.getHost())) {
-        System.out.println( "trying url: " + url );
+        if( DEBUG ) System.out.println( "trying url: " + url );
         try {
           HtmlPage page = webClient.getPage(url);
-          queue.addAll(root.addPage(page));
+		  if( page.getWebResponse().getStatusCode() == 200 ) {
+			queue.addAll(root.addPage(page));
+		  }
           getResponseCode(url);
           checkResponseTime(url);
         }
@@ -218,7 +222,7 @@ public class BasicFuzzer {
    */
   private static void getResponseCode(URL url) throws IOException, MalformedURLException {
     int statusCode = webClient.getPage(url).getWebResponse().getStatusCode();
-    if (statusCode!=200) {
+    if (statusCode!=200 && statusCode!=404) { // ignore 404s too because we're guessing
       System.out.println("Status code for "+url+" not 200 OK and is instead " +statusCode);
     }
   }

@@ -85,7 +85,7 @@ public class PathNode {
 			for( String word : BasicFuzzer.commonWords ) {
 				if( word.startsWith( "/" ) ) word = word.substring(1);
 				try {
-					System.out.println( "Guessing URL: " + uri.resolve( word ).toURL() );
+					if( BasicFuzzer.DEBUG ) System.out.println( "Guessing URL: " + uri.resolve( word ).toURL() );
 					guesses.add( uri.resolve( word ).toURL() );
 				} catch( MalformedURLException e ) {
 					// just don't guess it

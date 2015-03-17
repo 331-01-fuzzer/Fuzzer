@@ -49,7 +49,7 @@ public class FileNode {
 	public ArrayList<URL> getLinks() {
 		ArrayList<URL> links = new ArrayList<URL>();
 		for( HtmlAnchor link : page.getAnchors() ) {
-			System.out.println( "FileNode found URL: " + link.getHrefAttribute() );
+			if( BasicFuzzer.DEBUG ) System.out.println( "FileNode found URL: " + link.getHrefAttribute() );
 			try {
 				links.add( new URL( link.getHrefAttribute() ) );
 			} catch( MalformedURLException e ) {
@@ -136,9 +136,9 @@ public class FileNode {
 			System.out.println( "\tForm Inputs:" );
 			for( HtmlForm form : forms ) {
 				for( HtmlTextArea ta : (List<HtmlTextArea>) form.getByXPath( "//textarea" ) )
-					System.out.println( "".equals( ta.getNameAttribute() ) ? "[no name]" : ta.getNameAttribute() );
+					System.out.println( "\t--" + ("".equals( ta.getNameAttribute() ) ? "[no name]" : ta.getNameAttribute()) );
 				for( HtmlInput in : (List<HtmlInput>) form.getByXPath( "//input" ) )
-					System.out.println( "".equals( in.getNameAttribute() ) ? "[no name]" : in.getNameAttribute() );
+					System.out.println( "\t--" + ("".equals( in.getNameAttribute() ) ? "[no name]" : in.getNameAttribute()) );
 			}
 		}
 	}
