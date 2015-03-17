@@ -32,6 +32,8 @@ public class BasicFuzzer {
   static WebClient webClient;
 
   static List<String> commonWords;
+  static List<String> vectors;
+  static List<String> sensitive;
 
   /**
    *
@@ -62,15 +64,22 @@ public class BasicFuzzer {
 
     if(flags.containsKey("--custom-auth")) getAuth(flags.get("--custom-auth"));
     if(flags.containsKey("--common-words")) commonWords = readFile(flags.get("--common-words"));
+	if(flags.containsKey("--vectors")) vectors = readFile(flags.get("--vectors"));
+	if(flags.containsKey("--sensitive")) sensitive = readFile(flags.get("--sensitive"));
     if(!flags.containsKey("--slow")) flags.put("--slow","500");
+	boolean random = false;
+	if(flags.containsKey("--random"))
+		random = Boolean.parseBoolean(flags.get("--random"));
 
     if("discover".equals(runType.toLowerCase())) {
       runDiscover(webClient, url);
       System.out.println("Discovery complete");
     } else if("test".equals(runType.toLowerCase())) {
-      runTest();
+      runTest(webClient, url, random);
       System.out.println("Test complete");
     }
+	
+    webClient.closeAllWindows();
   }
 
   private static void readFlags(String[] args) {
@@ -140,13 +149,15 @@ public class BasicFuzzer {
   }
 
   private static void runDiscover(WebClient client, String url) throws IOException, MalformedURLException {
-    discoverLinks(client, url);
+    PathNode root = discoverLinks(client, url);
+    System.out.println( "\nDiscovery Results:\n" );
+    root.printResults();
     discoverInputs(client, url);
-    client.closeAllWindows();
   }
 
-  private static void runTest() {
-    //TODO: release 2
+  private static void runTest(WebClient client, String url, boolean random) throws IOException {
+    PathNode root = discoverLinks(client, url);
+	root.printResults(client, vectors, sensitive, !random);
   }
 
   /**
@@ -155,7 +166,7 @@ public class BasicFuzzer {
    * @throws IOException
    * @throws MalformedURLException
    */
-  private static void discoverLinks(WebClient webClient, String homeurl) throws IOException, MalformedURLException {
+  private static PathNode discoverLinks(WebClient webClient, String homeurl) throws IOException, MalformedURLException {
     HtmlPage homepage = webClient.getPage(homeurl);
     PathNode root = new PathNode(homepage.getUrl());
     ArrayDeque<URL> queue = new ArrayDeque<URL>(root.getGuesses());
@@ -179,8 +190,7 @@ public class BasicFuzzer {
       }
     }
 
-    System.out.println( "\nDiscovery Results:\n" );
-    root.printResults();
+	return root;
   }
 
   /**
