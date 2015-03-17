@@ -9,6 +9,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 public class PathNode {
 
@@ -96,9 +97,7 @@ public class PathNode {
 
 	/**
 	 * Prints all urls, including children
-	 * @deprecated use printResults(List<String>,List<String) instead
 	 */
-	@Deprecated
 	public void printResults() {
 		for( FileNode file : files.values() ) file.printResults();
 		for( PathNode path : subpaths.values() ) path.printResults();
@@ -107,13 +106,27 @@ public class PathNode {
 	/**
 	 * Prints all urls, including children
 	 */
-	public void printResults( WebClient client, List<String> vectors, List<String> keywords ) {
+	public void printResults( WebClient client, List<String> vectors, List<String> keywords, boolean tryAll ) {
+	
+		// pick a file/path (but skip random gen if tryAll)
+		int ctr = tryAll ? 0 : new Random().nextInt( files.size() + subpaths.size() );
+		
+		// files
 		for( FileNode file : files.values() ) {
 			file.printResults();
-			file.tryForms( vectors, keywords );
-			file.tryUrlParams( client, vectors, keywords );
+			if( tryAll || ctr-- == 0 ) {
+				file.tryForms( vectors, keywords );
+				file.tryUrlParams( client, vectors, keywords );
+			}
 		}
-		for( PathNode path : subpaths.values() )
-			path.printResults( client, vectors, keywords );
+		
+		// subpaths
+		for( PathNode path : subpaths.values() ) {
+			if( tryAll || ctr-- == 0 ) {
+				path.printResults( client, vectors, keywords, tryAll );
+			} else {
+				path.printResults();
+			}
+		}
 	}
 }
