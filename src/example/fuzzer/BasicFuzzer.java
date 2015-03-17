@@ -30,9 +30,9 @@ public class BasicFuzzer {
    */
   static Map<String,String> flags = new HashMap<String,String>();
   static WebClient webClient;
-  
+
   static List<String> commonWords;
-  
+
   /**
    *
    * @param args
@@ -48,8 +48,6 @@ public class BasicFuzzer {
       System.exit(1);
     }
 
-    String[] loginDetails = new String[2];
-
     String runType = args[0];
     String url = args[1];
 
@@ -57,21 +55,22 @@ public class BasicFuzzer {
 
     if(args.length > 2) readFlags(Arrays.copyOfRange(args, 2, args.length));
 
-    java.util.logging.Logger.getLogger("com.gargoylesoftware").setLevel(java.util.logging.Level.OFF); 
+    java.util.logging.Logger.getLogger("com.gargoylesoftware").setLevel(java.util.logging.Level.OFF);
     webClient = new WebClient();
     webClient.setJavaScriptEnabled(true);
     webClient.setThrowExceptionOnFailingStatusCode(false);
 
     if(flags.containsKey("--custom-auth")) getAuth(flags.get("--custom-auth"));
-	if(flags.containsKey("--common-words")) commonWords = readFile(flags.get("--common-words"));
+    if(flags.containsKey("--common-words")) commonWords = readFile(flags.get("--common-words"));
+    if(!flags.containsKey("--slow")) flags.put("--slow","500");
 
     if("discover".equals(runType.toLowerCase())) {
       runDiscover(webClient, url);
+      System.out.println("Discovery complete");
     } else if("test".equals(runType.toLowerCase())) {
       runTest();
+      System.out.println("Test complete");
     }
-
-//		doFormPost(webClient);
   }
 
   private static void readFlags(String[] args) {
@@ -142,14 +141,14 @@ public class BasicFuzzer {
 
   private static void runDiscover(WebClient client, String url) throws IOException, MalformedURLException {
     discoverLinks(client, url);
-	discoverInputs(client, url);
+    discoverInputs(client, url);
     client.closeAllWindows();
   }
 
   private static void runTest() {
     //TODO: release 2
   }
-  
+
   /**
    * This code is for showing how you can get all the links on a given page, and visit a given URL
    * @param webClient
@@ -159,27 +158,31 @@ public class BasicFuzzer {
   private static void discoverLinks(WebClient webClient, String homeurl) throws IOException, MalformedURLException {
     HtmlPage homepage = webClient.getPage(homeurl);
     PathNode root = new PathNode(homepage.getUrl());
-	ArrayDeque<URL> queue = new ArrayDeque<URL>(root.getGuesses());
-	queue.addAll(root.addPage(homepage));
-	while(!queue.isEmpty()) {
-	  URL url = queue.remove();
-	  if(homepage.getUrl().getHost().equals(url.getHost())) {
+    ArrayDeque<URL> queue = new ArrayDeque<URL>(root.getGuesses());
+    queue.addAll(root.addPage(homepage));
+    while(!queue.isEmpty()) {
+      URL url = queue.remove();
+      if(homepage.getUrl().getHost().equals(url.getHost())) {
+        System.out.println( "trying url: " + url );
         try {
-	      System.out.println( "trying url: " + url );
           HtmlPage page = webClient.getPage(url);
           queue.addAll(root.addPage(page));
-        } catch( FailingHttpStatusCodeException e ) {
-	      // error getting page (most likely it doesn't exist) - don't add it.
-	    } catch( ScriptException e ) {
-		  //FIXME should probably still add it? or would it not be a valid HtmlPage?
-		}
+          getResponseCode(url);
+          checkResponseTime(url);
+        }
+//        } catch( FailingHttpStatusCodeException e ) {
+//          // error getting page (most likely it doesn't exist) - don't add it.
+//        }
+        catch( ScriptException e ) {
+          //FIXME should probably still add it? or would it not be a valid HtmlPage?
+        }
       }
-	}
-	
-	System.out.println( "\nDiscovery Results:\n" );
-	root.printResults();
+    }
+
+    System.out.println( "\nDiscovery Results:\n" );
+    root.printResults();
   }
-  
+
   /**
    * This code is for showing how you can get all the links on a given page, and visit a given URL
    * @param webClient
@@ -189,21 +192,21 @@ public class BasicFuzzer {
   private static void discoverInputs(WebClient webClient, String url) throws IOException, MalformedURLException {
     HtmlPage page = webClient.getPage(url);
     //PathNode root = new PathNode(page.getUrl());
-	//root.addPage(page);
+    //root.addPage(page);
     List<HtmlForm> forms = page.getForms();
     Set<Cookie> cookies = webClient.getCookieManager().getCookies(page.getUrl());
     for(HtmlForm form : forms) {
-    	System.out.println("Input discovered: " + form.asText());
+      System.out.println("Input discovered: " + form.asText());
     }
     for(Cookie cookie : cookies){
-    	System.out.println("Cookie discovered: " + cookie.toString());
+      System.out.println("Cookie discovered: " + cookie.toString());
     }
   }
 
   /**
    *
    */
-  private static void getResponseCode(String url) throws IOException, MalformedURLException {
+  private static void getResponseCode(URL url) throws IOException, MalformedURLException {
     int statusCode = webClient.getPage(url).getWebResponse().getStatusCode();
     if (statusCode!=200) {
       System.out.println("Status code for "+url+" not 200 OK and is instead " +statusCode);
@@ -213,7 +216,7 @@ public class BasicFuzzer {
   /**
    *
    */
-  private static void checkResponseTime(String url) throws IOException, MalformedURLException {
+  private static void checkResponseTime(URL url) throws IOException, MalformedURLException {
     long responseTime = webClient.getPage(url).getWebResponse().getLoadTime();
     if(Integer.parseInt(flags.get("--slow")) < responseTime) {
       System.out.println("Response time of "+responseTime+"ms for website " + url + " slower than expected response time " +Integer.parseInt(flags.get("--slow"))+ "ms");
